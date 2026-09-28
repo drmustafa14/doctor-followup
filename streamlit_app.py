@@ -246,7 +246,7 @@ else:
         email = st.text_input("Email")
         password = st.text_input("Password", type="password")
 
-        if st.button("Log in", type="primary"):
+                if st.button("Log in", type="primary"):
 
             try:
                 auth_response = supabase.auth.sign_in_with_password(
@@ -257,10 +257,10 @@ else:
                 )
 
                 if auth_response.session:
-    st.session_state.doctor_logged_in = True
-    st.session_state.supabase_access_token = auth_response.session.access_token
-    st.session_state.supabase_refresh_token = auth_response.session.refresh_token
-    st.rerun()
+                    st.session_state.doctor_logged_in = True
+                    st.session_state.supabase_access_token = auth_response.session.access_token
+                    st.session_state.supabase_refresh_token = auth_response.session.refresh_token
+                    st.rerun()
                 else:
                     st.error("Login failed. Please check your credentials.")
 
