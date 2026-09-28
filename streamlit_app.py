@@ -220,6 +220,45 @@ if mode == "Patient Follow-up Link":
 
 else:
 
+    # -----------------------------
+    # DOCTOR LOGIN
+    # -----------------------------
+
+    if "doctor_logged_in" not in st.session_state:
+        st.session_state.doctor_logged_in = False
+
+    if not st.session_state.doctor_logged_in:
+
+        st.header("Doctor Login")
+
+        email = st.text_input("Email")
+        password = st.text_input("Password", type="password")
+
+        if st.button("Log in", type="primary"):
+
+            try:
+                auth_response = supabase.auth.sign_in_with_password(
+                    {
+                        "email": email,
+                        "password": password
+                    }
+                )
+
+                if auth_response.session:
+                    st.session_state.doctor_logged_in = True
+                    st.rerun()
+                else:
+                    st.error("Login failed. Please check your credentials.")
+
+            except Exception as e:
+                st.error("Login failed. Please check your email and password.")
+
+        st.stop()
+
+    # -----------------------------
+    # DOCTOR DASHBOARD
+    # -----------------------------
+
     st.header("Doctor Dashboard")
 
     st.write(
