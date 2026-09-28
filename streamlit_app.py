@@ -7,6 +7,18 @@ SUPABASE_URL = st.secrets["SUPABASE_URL"]
 SUPABASE_KEY = st.secrets["SUPABASE_KEY"]
 
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+# Restore Supabase session after Streamlit reruns
+if (
+    "supabase_access_token" in st.session_state
+    and "supabase_refresh_token" in st.session_state
+):
+    try:
+        supabase.auth.set_session(
+            st.session_state.supabase_access_token,
+            st.session_state.supabase_refresh_token
+        )
+    except Exception:
+        pass
 
 # --------------------------------------------------
 # PAGE CONFIGURATION
@@ -245,8 +257,10 @@ else:
                 )
 
                 if auth_response.session:
-                    st.session_state.doctor_logged_in = True
-                    st.rerun()
+    st.session_state.doctor_logged_in = True
+    st.session_state.supabase_access_token = auth_response.session.access_token
+    st.session_state.supabase_refresh_token = auth_response.session.refresh_token
+    st.rerun()
                 else:
                     st.error("Login failed. Please check your credentials.")
 
