@@ -280,10 +280,11 @@ else:
             )
         else:
             st.error("Doctor profile not found.")
+    except Exception as e:
+        st.error("Could not access the doctor profile.")
+        st.exception(e)
 
-    except Exception as 
-            st.error("Could not access the doctor profile.")
-    st.exception(e)
+    st.header("Doctor Dashboard")
 
     st.header("Doctor Dashboard")
 
