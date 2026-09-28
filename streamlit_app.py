@@ -258,6 +258,31 @@ else:
     # -----------------------------
     # DOCTOR DASHBOARD
     # -----------------------------
+        # -----------------------------
+    # TEST SUPABASE DATABASE ACCESS
+    # -----------------------------
+
+    try:
+        current_user = supabase.auth.get_user().user
+
+        doctor_profile = (
+            supabase
+            .table("doctors")
+            .select("id, name")
+            .eq("id", current_user.id)
+            .single()
+            .execute()
+        )
+
+        if doctor_profile.data:
+            st.success(
+                f"Connected to Supabase — {doctor_profile.data['name']}"
+            )
+        else:
+            st.error("Doctor profile not found.")
+
+    except Exception:
+        st.error("Could not access the doctor profile.")
 
     st.header("Doctor Dashboard")
 
