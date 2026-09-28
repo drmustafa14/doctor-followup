@@ -228,8 +228,7 @@ if mode == "Patient Follow-up Link":
 
 # ==================================================
 # DOCTOR DASHBOARD
-# ==================================================
-
+# =================================================
 else:
 
     # -----------------------------
@@ -246,7 +245,7 @@ else:
         email = st.text_input("Email")
         password = st.text_input("Password", type="password")
 
-                if st.button("Log in", type="primary"):
+        if st.button("Log in", type="primary"):
 
             try:
                 auth_response = supabase.auth.sign_in_with_password(
@@ -270,9 +269,6 @@ else:
         st.stop()
 
     # -----------------------------
-    # DOCTOR DASHBOARD
-    # -----------------------------
-        # -----------------------------
     # TEST SUPABASE DATABASE ACCESS
     # -----------------------------
 
@@ -294,13 +290,18 @@ else:
             )
         else:
             st.error("Doctor profile not found.")
+
     except Exception as e:
         st.error("Could not access the doctor profile.")
         st.exception(e)
 
-    st.header("Doctor Dashboard")
+    # -----------------------------
+    # DOCTOR DASHBOARD
+    # -----------------------------
 
     st.header("Doctor Dashboard")
+
+
 
     st.write(
         "Welcome, **Dr. Mustafa**"
