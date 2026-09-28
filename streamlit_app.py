@@ -1,232 +1,357 @@
 import streamlit as st
+from datetime import datetime
 
-# -----------------------------
-# Page configuration
-# -----------------------------
+# --------------------------------------------------
+# PAGE CONFIGURATION
+# --------------------------------------------------
+
 st.set_page_config(
-    page_title="Doctor Follow-up",
+    page_title="MedFollow",
     page_icon="🩺",
     layout="centered"
 )
 
-# -----------------------------
-# Demo patient data
-# -----------------------------
+# --------------------------------------------------
+# DEMO DATA
+# --------------------------------------------------
+
 patients = {
-    "Ahmed Khan": {
+    "demo123": {
+        "name": "Ahmed Khan",
         "age": 52,
-        "last_visit": "12 September 2026",
+        "doctor": "Dr. Mustafa",
+        "last_consultation": "12 September 2026",
         "reason": "Diabetes follow-up",
-        "investigations": ["HbA1c", "Creatinine", "Lipid profile"],
-        "treatment": "Continue previously prescribed treatment.",
-        "previous_results": {
-            "HbA1c": "7.8%",
-            "Creatinine": "0.9 mg/dL",
-            "LDL": "128 mg/dL"
-        }
+        "previous_plan": (
+            "Patient was advised to complete HbA1c, "
+            "creatinine and lipid profile after follow-up."
+        )
     },
-    "Sara Ali": {
+    "demo456": {
+        "name": "Sara Ali",
         "age": 38,
-        "last_visit": "15 September 2026",
+        "doctor": "Dr. Mustafa",
+        "last_consultation": "15 September 2026",
         "reason": "Thyroid follow-up",
-        "investigations": ["TSH", "Free T4"],
-        "treatment": "Continue current treatment as previously prescribed.",
-        "previous_results": {
-            "TSH": "4.8 mIU/L",
-            "Free T4": "1.1 ng/dL"
-        }
-    },
-    "Ali Raza": {
-        "age": 61,
-        "last_visit": "18 September 2026",
-        "reason": "Hypertension follow-up",
-        "investigations": ["Creatinine", "Electrolytes", "Lipid profile"],
-        "treatment": "Continue current treatment.",
-        "previous_results": {
-            "Creatinine": "1.0 mg/dL",
-            "LDL": "135 mg/dL"
-        }
+        "previous_plan": (
+            "Patient was advised to repeat thyroid function tests."
+        )
     }
 }
 
-# -----------------------------
-# Header
-# -----------------------------
-st.title("🩺 Doctor Follow-up")
+# --------------------------------------------------
+# DEMO SUBMISSIONS
+# --------------------------------------------------
+
+if "submissions" not in st.session_state:
+    st.session_state.submissions = []
+
+# --------------------------------------------------
+# HEADER
+# --------------------------------------------------
+
+st.title("🩺 MedFollow")
 
 st.caption(
-    "A simple portal for doctors to review patient follow-up reports."
+    "A simple follow-up communication portal for doctors and patients."
 )
+
+# --------------------------------------------------
+# DEMO WARNING
+# --------------------------------------------------
 
 st.warning(
     "DEMO VERSION — Use fictional patient information only. "
-    "Do not upload real patient records."
+    "Do not upload real patient medical records."
 )
 
-# -----------------------------
-# Sidebar
-# -----------------------------
-st.sidebar.title("Doctor Dashboard")
-st.sidebar.write("Dr. Mustafa")
+# --------------------------------------------------
+# NAVIGATION
+# --------------------------------------------------
 
-page = st.sidebar.radio(
-    "Navigation",
-    ["Patients", "About"]
+mode = st.sidebar.radio(
+    "Select mode",
+    [
+        "Patient Follow-up Link",
+        "Doctor Dashboard"
+    ]
 )
 
-# -----------------------------
-# Patients page
-# -----------------------------
-if page == "Patients":
+# ==================================================
+# PATIENT FOLLOW-UP LINK
+# ==================================================
 
-    st.subheader("My Patients")
+if mode == "Patient Follow-up Link":
 
-    patient_name = st.selectbox(
-        "Select a patient",
-        list(patients.keys())
+    st.header("Submit Follow-up Report")
+
+    st.write(
+        "Use this page to send a laboratory report, "
+        "medical report, or home readings to your doctor."
     )
 
-    patient = patients[patient_name]
-
     st.divider()
 
-    # Patient information
-    st.subheader(patient_name)
+    # Patient link/token
+    patient_code = st.selectbox(
+        "Demo patient link",
+        ["demo123", "demo456"]
+    )
 
-    col1, col2 = st.columns(2)
+    patient = patients[patient_code]
 
-    with col1:
-        st.write("**Age**")
-        st.write(patient["age"])
+    st.info(
+        f"This link is for **{patient['doctor']}**"
+    )
 
-    with col2:
-        st.write("**Last consultation**")
-        st.write(patient["last_visit"])
+    st.subheader("Patient information")
 
-    st.write("**Reason for consultation**")
-    st.write(patient["reason"])
+    patient_name = st.text_input(
+        "Patient name",
+        value=patient["name"]
+    )
 
-    st.divider()
+    contact = st.text_input(
+        "Phone number or email"
+    )
 
-    # Previous consultation
-    st.subheader("Previous Consultation")
+    st.subheader("What are you submitting?")
 
-    st.write("**Investigations requested:**")
-
-    for investigation in patient["investigations"]:
-        st.write("•", investigation)
-
-    st.write("**Previous treatment:**")
-    st.info(patient["treatment"])
-
-    st.write("**Previous results:**")
-
-    for test, value in patient["previous_results"].items():
-        st.write(f"**{test}:** {value}")
-
-    st.divider()
-
-    # Report upload
-    st.subheader("Upload Follow-up Report")
+    submission_type = st.selectbox(
+        "Select type",
+        [
+            "Laboratory report",
+            "Blood pressure readings",
+            "Blood glucose readings",
+            "Imaging report",
+            "Medical record",
+            "Other"
+        ]
+    )
 
     uploaded_file = st.file_uploader(
-        "Patient report",
-        type=["pdf", "png", "jpg", "jpeg"],
-        help="Demo only — do not upload real patient records."
+        "Upload your report or image",
+        type=[
+            "pdf",
+            "png",
+            "jpg",
+            "jpeg"
+        ]
     )
 
-    if uploaded_file is not None:
-
-        st.success(
-            f"Report uploaded: {uploaded_file.name}"
+    message = st.text_area(
+        "Message for your doctor",
+        placeholder=(
+            "Example: I completed the blood tests as advised "
+            "during my previous consultation."
         )
+    )
 
-        st.subheader("Report Review")
+    st.divider()
 
-        st.info(
-            "AI report extraction will be added in the next version."
-        )
+    st.subheader("Previous consultation")
 
-        st.write("For now, the doctor can review the uploaded document manually.")
+    st.write(
+        f"**Last consultation:** "
+        f"{patient['last_consultation']}"
+    )
 
-        st.divider()
+    st.write(
+        f"**Reason:** {patient['reason']}"
+    )
 
-        # Doctor response
-        st.subheader("Doctor Response")
+    st.write(
+        f"**Previous plan:** {patient['previous_plan']}"
+    )
 
-        response = st.radio(
-            "Choose an action",
-            [
-                "Continue current treatment",
-                "Book follow-up appointment",
-                "Send custom message"
-            ]
-        )
+    st.divider()
 
-        if response == "Continue current treatment":
+    if st.button(
+        "Submit for Doctor Review",
+        type="primary",
+        use_container_width=True
+    ):
 
-            st.success(
-                "Response prepared: Continue current treatment."
-            )
+        if not patient_name:
+            st.error("Please enter your name.")
 
-            st.text_area(
-                "Message to patient",
-                value=(
-                    "Your report has been reviewed. "
-                    "Please continue your previously prescribed treatment "
-                    "and follow the instructions provided during your consultation."
-                ),
-                height=120
-            )
-
-        elif response == "Book follow-up appointment":
-
-            st.info(
-                "Response prepared: Patient should book a follow-up appointment."
-            )
-
-            st.text_area(
-                "Message to patient",
-                value=(
-                    "Your report has been reviewed. "
-                    "Please book a follow-up appointment to discuss the results."
-                ),
-                height=120
-            )
+        elif uploaded_file is None:
+            st.error("Please upload a report or reading.")
 
         else:
 
-            st.text_area(
-                "Write your message to the patient",
-                height=150
+            submission = {
+                "patient": patient_name,
+                "patient_code": patient_code,
+                "contact": contact,
+                "type": submission_type,
+                "file_name": uploaded_file.name,
+                "message": message,
+                "time": datetime.now().strftime(
+                    "%d %B %Y, %I:%M %p"
+                ),
+                "status": "Awaiting doctor review"
+            }
+
+            st.session_state.submissions.append(
+                submission
             )
 
-        if st.button("Prepare Response", type="primary"):
             st.success(
-                "Response prepared successfully. "
-                "Patient messaging will be connected in a future version."
+                "Your report has been submitted successfully."
             )
 
-# -----------------------------
-# About page
-# -----------------------------
+            st.info(
+                "Your doctor will review the submission "
+                "and provide further instructions."
+            )
+
+
+# ==================================================
+# DOCTOR DASHBOARD
+# ==================================================
+
 else:
 
-    st.subheader("About Doctor Follow-up")
+    st.header("Doctor Dashboard")
+
+    st.write(
+        "Welcome, **Dr. Mustafa**"
+    )
+
+    st.divider()
+
+    st.subheader("Follow-up submissions")
+
+    if len(st.session_state.submissions) == 0:
+
+        st.info(
+            "No new patient submissions yet."
+        )
+
+    else:
+
+        for index, submission in enumerate(
+            st.session_state.submissions
+        ):
+
+            with st.expander(
+                f"🔴 {submission['patient']} — "
+                f"{submission['type']}"
+            ):
+
+                st.write(
+                    f"**Submitted:** "
+                    f"{submission['time']}"
+                )
+
+                st.write(
+                    f"**Contact:** "
+                    f"{submission['contact']}"
+                )
+
+                st.write(
+                    f"**File:** "
+                    f"{submission['file_name']}"
+                )
+
+                st.write(
+                    f"**Patient message:** "
+                    f"{submission['message'] or 'No message provided.'}"
+                )
+
+                st.divider()
+
+                st.subheader("Doctor response")
+
+                response = st.radio(
+                    "Select action",
+                    [
+                        "Continue previously prescribed treatment",
+                        "Book follow-up appointment",
+                        "Call clinic promptly",
+                        "Custom response"
+                    ],
+                    key=f"response_{index}"
+                )
+
+                if response == "Continue previously prescribed treatment":
+
+                    default_message = (
+                        "Your report has been reviewed. "
+                        "Please continue your previously "
+                        "prescribed treatment as advised."
+                    )
+
+                elif response == "Book follow-up appointment":
+
+                    default_message = (
+                        "Your report has been reviewed. "
+                        "Please book a follow-up appointment "
+                        "to discuss the results."
+                    )
+
+                elif response == "Call clinic promptly":
+
+                    default_message = (
+                        "Your report has been reviewed. "
+                        "Please contact the clinic promptly."
+                    )
+
+                else:
+
+                    default_message = ""
+
+                doctor_message = st.text_area(
+                    "Message to patient",
+                    value=default_message,
+                    key=f"message_{index}",
+                    height=120
+                )
+
+                if st.button(
+                    "Mark as Reviewed",
+                    key=f"review_{index}",
+                    type="primary"
+                ):
+
+                    submission["status"] = "Reviewed"
+                    submission["doctor_response"] = (
+                        doctor_message
+                    )
+
+                    st.success(
+                        "Submission marked as reviewed."
+                    )
+
+                    st.write(
+                        "**Patient response:**"
+                    )
+
+                    st.info(
+                        doctor_message
+                    )
+
+# ==================================================
+# ABOUT
+# ==================================================
+
+st.divider()
+
+with st.expander("About MedFollow"):
 
     st.write(
         """
-        Doctor Follow-up is a prototype designed to help doctors
-        communicate with regular patients without relying on personal
-        phone numbers or messaging accounts.
+        MedFollow is a prototype for doctor-patient follow-up
+        communication.
+
+        The goal is to allow doctors to give patients a dedicated
+        follow-up link instead of sharing their personal phone number.
+
+        Patients can use the link to submit reports or readings
+        requested during a previous consultation.
+
+        The doctor then reviews the submission and decides the
+        appropriate next step.
         """
     )
-
-    st.write("### Planned features")
-
-    st.write("• Patient report uploads")
-    st.write("• AI-assisted report extraction")
-    st.write("• Previous-result comparison")
-    st.write("• Doctor-approved patient responses")
-    st.write("• Follow-up appointment requests")
-    st.write("• Patient history")
