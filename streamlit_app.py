@@ -1,5 +1,6 @@
 import streamlit as st
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
+from secrets import token_urlsafe
 from supabase import create_client
 
 # Supabase connection
@@ -383,6 +384,119 @@ else:
             except Exception as e:
                 st.error("Could not add the patient.")
                 st.exception(e)
+        # -----------------------------
+    # CREATE FOLLOW-UP REQUEST
+    # -----------------------------
+
+    st.divider()
+    st.subheader("Create Follow-up Request")
+
+    try:
+        current_user = supabase.auth.get_user().user
+
+        request_patients_response = (
+            supabase
+            .table("patients")
+            .select("id, name")
+            .eq("doctor_id", current_user.id)
+            .order("name")
+            .execute()
+        )
+
+        request_patients = request_patients_response.data or []
+
+        if not request_patients:
+            st.info("Add a patient first before creating a follow-up request.")
+
+        else:
+            patient_options = {
+                patient["name"]: patient["id"]
+                for patient in request_patients
+            }
+
+            selected_patient_name = st.selectbox(
+                "Select patient",
+                list(patient_options.keys()),
+                key="request_patient"
+            )
+
+            request_type = st.selectbox(
+                "What should the patient submit?",
+                [
+                    "Laboratory report",
+                    "Blood pressure reading",
+                    "Blood glucose reading",
+                    "Imaging report",
+                    "Medical report",
+                    "Other"
+                ],
+                key="request_type"
+            )
+
+            instructions = st.text_area(
+                "Instructions for patient",
+                placeholder=(
+                    "Example: Please upload your HbA1c and lipid profile "
+                    "results."
+                ),
+                key="request_instructions"
+            )
+
+            if st.button(
+                "Generate Follow-up Link",
+                type="primary",
+                key="generate_followup"
+            ):
+
+                token = token_urlsafe(32)
+                expires_at = datetime.now(timezone.utc) + timedelta(days=14)
+
+                try:
+                    new_request = (
+                        supabase
+                        .table("follow_up_requests")
+                        .insert(
+                            {
+                                "doctor_id": current_user.id,
+                                "patient_id": patient_options[
+                                    selected_patient_name
+                                ],
+                                "token": token,
+                                "request_type": request_type,
+                                "instructions": instructions.strip() or None,
+                                "expires_at": expires_at.isoformat(),
+                                "status": "active"
+                            }
+                        )
+                        .execute()
+                    )
+
+                    if new_request.data:
+                        base_url = st.context.url
+                        followup_link = f"{base_url}?token={token}"
+
+                        st.success(
+                            "Follow-up request created successfully."
+                        )
+
+                        st.text_input(
+                            "Patient follow-up link",
+                            value=followup_link,
+                            key="generated_link"
+                        )
+
+                        st.caption(
+                            "This link expires in 14 days and is intended "
+                            "for one submission."
+                        )
+
+                except Exception as e:
+                    st.error("Could not create the follow-up request.")
+                    st.exception(e)
+
+    except Exception as e:
+        st.error("Could not load patients for follow-up request.")
+        st.exception(e)
 
     st.divider()
 
