@@ -76,6 +76,90 @@ if patient_token:
 
         st.success("This follow-up link is active.")
 
+        st.divider()
+
+        st.subheader("Submit Your Report")
+
+        uploaded_file = st.file_uploader(
+            "Upload your report",
+            type=["pdf", "png", "jpg", "jpeg"],
+            key="patient_report"
+        )
+
+        patient_message = st.text_area(
+            "Message for the doctor (optional)",
+            placeholder="Add any information you would like the doctor to know.",
+            key="patient_message"
+        )
+
+        if st.button(
+            "Submit Follow-up",
+            type="primary",
+            key="submit_followup"
+        ):
+
+            if uploaded_file is None:
+                st.warning("Please upload your report before submitting.")
+
+            else:
+
+                try:
+                    file_name = uploaded_file.name
+                    file_path = (
+                        f"{patient_token}/"
+                        f"{token_urlsafe(8)}_{file_name}"
+                    )
+
+                    supabase.storage.from_(
+                        "patient-reports"
+                    ).upload(
+                        file_path,
+                        uploaded_file.getvalue(),
+                        {
+                            "content-type": uploaded_file.type,
+                            "upsert": "false"
+                        }
+                    )
+
+                    submission_response = (
+                        supabase
+                        .rpc(
+                            "submit_follow_up",
+                            {
+                                "p_token": patient_token,
+                                "p_message": patient_message,
+                                "p_file_name": file_name,
+                                "p_file_path": file_path
+                            }
+                        )
+                        .execute()
+                    )
+
+                    result = submission_response.data
+
+                    if result and result.get("success"):
+                        st.success(
+                            "Your report has been submitted successfully."
+                        )
+                        st.info(
+                            "The doctor will review your submission."
+                        )
+                        st.stop()
+
+                    else:
+                        st.error(
+                            result.get(
+                                "error",
+                                "The submission could not be completed."
+                            )
+                        )
+
+                except Exception:
+                    st.error(
+                        "We could not submit your report. "
+                        "Please try again."
+                    )
+
         st.stop()
 
     except Exception:
