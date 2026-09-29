@@ -306,6 +306,83 @@ else:
     st.write(
         "Welcome, **Dr. Mustafa**"
     )
+        # -----------------------------
+    # PATIENTS
+    # -----------------------------
+
+    st.divider()
+    st.subheader("Patients")
+
+    try:
+        current_user = supabase.auth.get_user().user
+
+        patients_response = (
+            supabase
+            .table("patients")
+            .select("id, name, contact, created_at")
+            .eq("doctor_id", current_user.id)
+            .order("created_at", desc=True)
+            .execute()
+        )
+
+        patients_data = patients_response.data or []
+
+        if patients_data:
+            for patient in patients_data:
+                with st.expander(patient["name"]):
+                    st.write(
+                        f"**Contact:** "
+                        f"{patient.get('contact') or 'Not provided'}"
+                    )
+        else:
+            st.info("No patients added yet.")
+
+    except Exception as e:
+        st.error("Could not load patients.")
+        st.exception(e)
+
+    # -----------------------------
+    # ADD PATIENT
+    # -----------------------------
+
+    st.subheader("Add Patient")
+
+    patient_name = st.text_input(
+        "Patient name",
+        key="new_patient_name"
+    )
+
+    patient_contact = st.text_input(
+        "Phone number or email",
+        key="new_patient_contact"
+    )
+
+    if st.button("Add patient", type="primary"):
+
+        if not patient_name.strip():
+            st.warning("Please enter the patient's name.")
+
+        else:
+            try:
+                current_user = supabase.auth.get_user().user
+
+                supabase.table("patients").insert(
+                    {
+                        "doctor_id": current_user.id,
+                        "name": patient_name.strip(),
+                        "contact": patient_contact.strip() or None
+                    }
+                ).execute()
+
+                st.success(
+                    f"Patient '{patient_name.strip()}' added successfully."
+                )
+
+                st.rerun()
+
+            except Exception as e:
+                st.error("Could not add the patient.")
+                st.exception(e)
 
     st.divider()
 
