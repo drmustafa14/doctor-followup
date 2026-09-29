@@ -31,6 +31,56 @@ st.set_page_config(
     page_icon="🩺",
     layout="centered"
 )
+# -----------------------------
+# PATIENT FOLLOW-UP LINK
+# -----------------------------
+
+patient_token = st.query_params.get("token")
+
+if patient_token:
+
+    st.header("MedFollow")
+
+    try:
+        request_response = (
+            supabase
+            .rpc(
+                "get_follow_up_request_by_token",
+                {"p_token": patient_token}
+            )
+            .execute()
+        )
+
+        request_data = request_response.data
+
+        if not request_data:
+            st.error(
+                "This follow-up link is invalid, expired, or has already been used."
+            )
+            st.stop()
+
+        request = request_data[0]
+
+        st.subheader("Follow-up Request")
+
+        st.write(
+            f"**Patient:** {request['patient_name']}"
+        )
+
+        st.write(
+            f"**Requested submission:** {request['request_type']}"
+        )
+
+        if request.get("instructions"):
+            st.info(request["instructions"])
+
+        st.success("This follow-up link is active.")
+
+        st.stop()
+
+    except Exception:
+        st.error("Unable to load this follow-up request.")
+        st.stop()
 
 # --------------------------------------------------
 # DEMO DATA
