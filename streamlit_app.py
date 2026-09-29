@@ -1,4 +1,5 @@
 import streamlit as st
+from urllib.parse import quote
 from datetime import datetime, timedelta, timezone
 from secrets import token_urlsafe
 from supabase import create_client
