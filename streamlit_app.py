@@ -689,7 +689,7 @@ else:
                     "Unknown patient"
                 )
 
-                      submission_data = request.get("submissions")
+                submission_data = request.get("submissions")
 
         if submission_data:
 
