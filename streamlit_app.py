@@ -718,8 +718,6 @@ else:
                     f"{submission.get('message') or 'No message provided.'}"
                 )
 
-         st.divider()
-
                     st.subheader("Doctor response")
 
                     response = st.radio(
