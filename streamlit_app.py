@@ -689,35 +689,34 @@ else:
                     "Unknown patient"
                 )
 
-        submission_data = request.get("submissions")
+                      submission_data = request.get("submissions")
 
-        if not submission_data:
-            continue
+        if submission_data:
 
-        if isinstance(submission_data, list):
-            submission = submission_data[0]
-        else:
-            submission = submission_data
+            if isinstance(submission_data, list):
+                submission = submission_data[0]
+            else:
+                submission = submission_data
 
             with st.expander(
-                    f"🔴 {patient_name} — "
-                    f"{request.get('request_type', 'Follow-up')}"
-                ):
+                f"🔴 {patient_name} - "
+                f"{request.get('request_type', 'Follow-up')}"
+            ):
 
-                    st.write(
-                        f"**Submitted:** "
-                        f"{request.get('submitted_at', 'Unknown')}"
-                    )
+                st.write(
+                    f"**Submitted:** "
+                    f"{request.get('submitted_at', 'Unknown')}"
+                )
 
-                    st.write(
-                        f"**File:** "
-                        f"{submission.get('file_name') or 'No file'}"
-                    )
+                st.write(
+                    f"**File:** "
+                    f"{submission.get('file_name') or 'No file'}"
+                )
 
-                    st.write(
-                        f"**Patient message:** "
-                        f"{submission.get('message') or 'No message provided.'}"
-                    )
+                st.write(
+                    f"**Patient message:** "
+                    f"{submission.get('message') or 'No message provided.'}"
+                )
 
                     st.divider()
 
