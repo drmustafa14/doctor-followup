@@ -699,7 +699,7 @@ else:
         else:
             submission = submission_data
 
-                with st.expander(
+            with st.expander(
                     f"🔴 {patient_name} — "
                     f"{request.get('request_type', 'Follow-up')}"
                 ):
