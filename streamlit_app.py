@@ -635,117 +635,188 @@ else:
 
     st.divider()
 
+        # -----------------------------
+    # FOLLOW-UP SUBMISSIONS
+    # -----------------------------
+
+    st.divider()
     st.subheader("Follow-up submissions")
 
-    if len(st.session_state.submissions) == 0:
+    try:
+        current_user = supabase.auth.get_user().user
 
-        st.info(
-            "No new patient submissions yet."
+        submissions_response = (
+            supabase
+            .table("follow_up_requests")
+            .select(
+                """
+                id,
+                patient_id,
+                request_type,
+                instructions,
+                status,
+                created_at,
+                submitted_at,
+                patients(name),
+                submissions(
+                    id,
+                    message,
+                    file_name,
+                    file_path,
+                    created_at
+                )
+                """
+            )
+            .eq("doctor_id", current_user.id)
+            .eq("status", "submitted")
+            .order("submitted_at", desc=True)
+            .execute()
         )
 
-    else:
+        submitted_requests = submissions_response.data or []
 
-        for index, submission in enumerate(
-            st.session_state.submissions
-        ):
+        if not submitted_requests:
 
-            with st.expander(
-                f"🔴 {submission['patient']} — "
-                f"{submission['type']}"
-            ):
+            st.info("No new patient submissions yet.")
 
-                st.write(
-                    f"**Submitted:** "
-                    f"{submission['time']}"
+        else:
+
+            for request in submitted_requests:
+
+                patient_info = request.get("patients") or {}
+                patient_name = patient_info.get(
+                    "name",
+                    "Unknown patient"
                 )
 
-                st.write(
-                    f"**Contact:** "
-                    f"{submission['contact']}"
-                )
+                submission_list = request.get("submissions") or []
 
-                st.write(
-                    f"**File:** "
-                    f"{submission['file_name']}"
-                )
+                if not submission_list:
+                    continue
 
-                st.write(
-                    f"**Patient message:** "
-                    f"{submission['message'] or 'No message provided.'}"
-                )
+                submission = submission_list[0]
 
-                st.divider()
-
-                st.subheader("Doctor response")
-
-                response = st.radio(
-                    "Select action",
-                    [
-                        "Continue previously prescribed treatment",
-                        "Book follow-up appointment",
-                        "Call clinic promptly",
-                        "Custom response"
-                    ],
-                    key=f"response_{index}"
-                )
-
-                if response == "Continue previously prescribed treatment":
-
-                    default_message = (
-                        "Your report has been reviewed. "
-                        "Please continue your previously "
-                        "prescribed treatment as advised."
-                    )
-
-                elif response == "Book follow-up appointment":
-
-                    default_message = (
-                        "Your report has been reviewed. "
-                        "Please book a follow-up appointment "
-                        "to discuss the results."
-                    )
-
-                elif response == "Call clinic promptly":
-
-                    default_message = (
-                        "Your report has been reviewed. "
-                        "Please contact the clinic promptly."
-                    )
-
-                else:
-
-                    default_message = ""
-
-                doctor_message = st.text_area(
-                    "Message to patient",
-                    value=default_message,
-                    key=f"message_{index}",
-                    height=120
-                )
-
-                if st.button(
-                    "Mark as Reviewed",
-                    key=f"review_{index}",
-                    type="primary"
+                with st.expander(
+                    f"🔴 {patient_name} — "
+                    f"{request.get('request_type', 'Follow-up')}"
                 ):
 
-                    submission["status"] = "Reviewed"
-                    submission["doctor_response"] = (
-                        doctor_message
-                    )
-
-                    st.success(
-                        "Submission marked as reviewed."
+                    st.write(
+                        f"**Submitted:** "
+                        f"{request.get('submitted_at', 'Unknown')}"
                     )
 
                     st.write(
-                        "**Patient response:**"
+                        f"**File:** "
+                        f"{submission.get('file_name') or 'No file'}"
                     )
 
-                    st.info(
-                        doctor_message
+                    st.write(
+                        f"**Patient message:** "
+                        f"{submission.get('message') or 'No message provided.'}"
                     )
 
+                    st.divider()
+
+                    st.subheader("Doctor response")
+
+                    response = st.radio(
+                        "Select action",
+                        [
+                            "Continue previously prescribed treatment",
+                            "Book follow-up appointment",
+                            "Call clinic promptly",
+                            "Custom response"
+                        ],
+                        key=f"response_{request['id']}"
+                    )
+
+                    if response == "Continue previously prescribed treatment":
+
+                        default_message = (
+                            "Your report has been reviewed. "
+                            "Please continue your previously "
+                            "prescribed treatment as advised."
+                        )
+
+                    elif response == "Book follow-up appointment":
+
+                        default_message = (
+                            "Your report has been reviewed. "
+                            "Please book a follow-up appointment "
+                            "to discuss the results."
+                        )
+
+                    elif response == "Call clinic promptly":
+
+                        default_message = (
+                            "Your report has been reviewed. "
+                            "Please contact the clinic promptly."
+                        )
+
+                    else:
+
+                        default_message = ""
+
+                    doctor_message = st.text_area(
+                        "Message to patient",
+                        value=default_message,
+                        key=f"message_{request['id']}",
+                        height=120
+                    )
+
+                    if st.button(
+                        "Mark as Reviewed",
+                        key=f"review_{request['id']}",
+                        type="primary"
+                    ):
+
+                        try:
+
+                            supabase.table("responses").insert(
+                                {
+                                    "submission_id": submission["id"],
+                                    "doctor_id": current_user.id,
+                                    "response_type": response,
+                                    "message": doctor_message.strip()
+                                }
+                            ).execute()
+
+                            supabase.table(
+                                "follow_up_requests"
+                            ).update(
+                                {
+                                    "status": "reviewed",
+                                    "reviewed_at": datetime.now(
+                                        timezone.utc
+                                    ).isoformat()
+                                }
+                            ).eq(
+                                "id",
+                                request["id"]
+                            ).execute()
+
+                            st.success(
+                                "Submission marked as reviewed."
+                            )
+
+                            st.rerun()
+
+                        except Exception as e:
+
+                            st.error(
+                                "Could not save the doctor response."
+                            )
+
+                            st.exception(e)
+
+    except Exception as e:
+
+        st.error(
+            "Could not load follow-up submissions."
+        )
+
+        st.exception(e)
 # ==================================================
 # ABOUT
 # ==================================================
