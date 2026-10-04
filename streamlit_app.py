@@ -689,15 +689,15 @@ else:
                     "Unknown patient"
                 )
 
-                submission_data = request.get("submissions")
+                        submission_data = request.get("submissions")
 
-                    if not submission_data:
-                        continue
+        if not submission_data:
+            continue
 
-                    if isinstance(submission_data, list):
-                        submission = submission_data[0]
-                    else:
-                        submission = submission_data
+        if isinstance(submission_data, list):
+            submission = submission_data[0]
+        else:
+            submission = submission_data
 
                 with st.expander(
                     f"🔴 {patient_name} — "
