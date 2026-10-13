@@ -718,18 +718,18 @@ else:
                     f"{submission.get('message') or 'No message provided.'}"
                 )
 
-                    st.subheader("Doctor response")
+                st.subheader("Doctor response")
 
-                    response = st.radio(
-                        "Select action",
-                        [
-                            "Continue previously prescribed treatment",
-                            "Book follow-up appointment",
-                            "Call clinic promptly",
-                            "Custom response"
-                        ],
-                        key=f"response_{request['id']}"
-                    )
+                response = st.radio(
+                    "Select action",
+                    [
+                        "Continue previously prescribed treatment",
+                        "Book follow-up appointment",
+                        "Call clinic promptly",
+                        "Custom response"
+                    ],
+                    key=f"response_{request['id']}"
+                )
 
                     if response == "Continue previously prescribed treatment":
 
