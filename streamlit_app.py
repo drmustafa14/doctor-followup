@@ -731,21 +731,21 @@ else:
                     key=f"response_{request['id']}"
                 )
 
-                    if response == "Continue previously prescribed treatment":
+                if response == "Continue previously prescribed treatment":
 
-                        default_message = (
-                            "Your report has been reviewed. "
-                            "Please continue your previously "
-                            "prescribed treatment as advised."
-                        )
+                    default_message = (
+                        "Your report has been reviewed. "
+                        "Please continue your previously "
+                        "prescribed treatment as advised."
+                    )
 
-                    elif response == "Book follow-up appointment":
+                elif response == "Book follow-up appointment":
 
-                        default_message = (
-                            "Your report has been reviewed. "
-                            "Please book a follow-up appointment "
-                            "to discuss the results."
-                        )
+                    default_message = (
+                        "Your report has been reviewed. "
+                        "Please book a follow-up appointment "
+                        "to discuss the results."
+                    )
 
                     elif response == "Call clinic promptly":
 
