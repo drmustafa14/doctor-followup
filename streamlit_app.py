@@ -5,8 +5,8 @@ from secrets import token_urlsafe
 from supabase import create_client
 
 # Supabase connection
-SUPABASE_URL = st.secrets["https://ewgdnyfbojxtmwfmfvfy.supabase.co"]
-SUPABASE_KEY = st.secrets["sb_publishable_RKAmO70Q-xz5IwIOshPuxQ_02BJBDlL"]
+SUPABASE_URL = st.secrets["SUPABASE_URL"]
+SUPABASE_KEY = st.secrets["SUPABASE_KEY"]
 
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 # Restore Supabase session after Streamlit reruns
