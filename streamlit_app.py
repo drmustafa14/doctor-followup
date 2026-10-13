@@ -747,16 +747,16 @@ else:
                         "to discuss the results."
                     )
 
-                    elif response == "Call clinic promptly":
+                elif response == "Call clinic promptly":
 
-                        default_message = (
-                            "Your report has been reviewed. "
-                            "Please contact the clinic promptly."
+                    default_message = (
+                        "Your report has been reviewed. "
+                        "Please contact the clinic promptly."
                         )
 
-                    else:
+                else:
 
-                        default_message = ""
+                    default_message = ""
 
                     doctor_message = st.text_area(
                         "Message to patient",
