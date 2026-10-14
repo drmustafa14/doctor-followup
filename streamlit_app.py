@@ -856,11 +856,11 @@ else:
 # ABOUT
 # ==================================================
 
-st.divider()
+                            st.divider()
 
-with st.expander("About MedFollow"):
+                       with st.expander("About MedFollow"):
 
-    st.write(
+                            st.write(
         """
         MedFollow is a prototype for doctor-patient follow-up
         communication.
