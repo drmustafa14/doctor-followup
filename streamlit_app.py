@@ -712,6 +712,48 @@ else:
                     f"**File:** "
                     f"{submission.get('file_name') or 'No file'}"
                 )
+                
+                file_path = submission.get("file_path")
+
+                if file_path:
+                    try:
+                        signed_result = (
+                            supabase.storage
+                            .from_("patient-reports")
+                            .create_signed_url(file_path, 300)
+                        )
+
+                        signed_url = (
+                            signed_result.get("signedURL")
+                            or signed_result.get("signedUrl")
+                        )
+
+                        if signed_url:
+                            st.link_button(
+                                "Open report",
+                                signed_url
+                            )
+
+                            if file_path.lower().endswith(
+                                (".png", ".jpg", ".jpeg", ".webp")
+                            ):
+                                st.image(signed_url)
+
+                        else:
+                            st.warning(
+                                "Could not generate a report viewing link."
+                            )
+
+                    except Exception:
+                        st.warning(
+                            "Report viewing failed. "
+                            "Please check file access permissions."
+                        )
+                else:
+                    st.info(
+                        "No stored file path is available for this submission."
+                    )
+
 
                 st.write(
                     f"**Patient message:** "
