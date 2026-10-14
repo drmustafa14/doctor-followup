@@ -675,14 +675,12 @@ else:
 
         submitted_requests = submissions_response.data or []
 
+       
         if not submitted_requests:
-
             st.info("No new patient submissions yet.")
 
         else:
-
             for request in submitted_requests:
-
                 patient_info = request.get("patients") or {}
                 patient_name = patient_info.get(
                     "name",
@@ -691,151 +689,155 @@ else:
 
                 submission_data = request.get("submissions")
 
-        if submission_data:
+                if not submission_data:
+                    continue
 
-            if isinstance(submission_data, list):
-                submission = submission_data[0]
-            else:
-                submission = submission_data
-
-            with st.expander(
-                f"🔴 {patient_name} - "
-                f"{request.get('request_type', 'Follow-up')}"
-            ):
-                st.write(
-                    f"**Submitted:** "
-                    f"{request.get('submitted_at', 'Unknown')}"
-                )
-
-                st.write(
-                    f"**File:** "
-                    f"{submission.get('file_name') or 'No file'}"
-                )
-
-                file_path = submission.get("file_path")
-
-                if file_path:
-                    try:
-                        signed_result = (
-                            supabase.storage
-                            .from_("patient-reports")
-                            .create_signed_url(file_path, 300)
-                        )
-
-                        signed_url = (
-                            signed_result.get("signedURL")
-                            or signed_result.get("signedUrl")
-                        )
-
-                        if signed_url:
-                            st.link_button(
-                                "Open report",
-                                signed_url
-                            )
-
-                            if file_path.lower().endswith(
-                                (".png", ".jpg", ".jpeg", ".webp")
-                            ):
-                                st.image(signed_url)
-                        else:
-                            st.warning(
-                                "Could not generate a report viewing link."
-                            )
-
-                    except Exception as e:
-                        st.error("Report viewing failed.")
-                        st.exception(e)
+                if isinstance(submission_data, list):
+                    submission = submission_data[0]
                 else:
-                    st.info(
-                        "No stored file path is available for this submission."
-                    )
+                    submission = submission_data
 
-                st.write(
-                    f"**Patient message:** "
-                    f"{submission.get('message') or 'No message provided.'}"
-                )
-
-                st.subheader("Doctor response")
-
-                response = st.radio(
-                    "Select action",
-                    [
-                        "Continue previously prescribed treatment",
-                        "Book follow-up appointment",
-                        "Call clinic promptly",
-                        "Custom response"
-                    ],
-                    key=f"response_{request['id']}"
-                )
-
-                if response == "Continue previously prescribed treatment":
-                    default_message = (
-                        "Your report has been reviewed. "
-                        "Please continue your previously "
-                        "prescribed treatment as advised."
-                    )
-                elif response == "Book follow-up appointment":
-                    default_message = (
-                        "Your report has been reviewed. "
-                        "Please book a follow-up appointment "
-                        "to discuss the results."
-                    )
-                elif response == "Call clinic promptly":
-                    default_message = (
-                        "Your report has been reviewed. "
-                        "Please contact the clinic promptly."
-                    )
-                else:
-                    default_message = ""
-
-                doctor_message = st.text_area(
-                    "Message to patient",
-                    value=default_message,
-                    key=f"message_{request['id']}",
-                    height=120
-                )
-
-                if st.button(
-                    "Mark as Reviewed",
-                    key=f"review_{request['id']}",
-                    type="primary"
+                with st.expander(
+                    f"🔴 {patient_name} - "
+                    f"{request.get('request_type', 'Follow-up')}"
                 ):
-                    try:
-                        supabase.table("responses").insert(
-                            {
-                                "submission_id": submission["id"],
-                                "doctor_id": current_user.id,
-                                "response_type": response,
-                                "message": doctor_message.strip()
-                            }
-                        ).execute()
+                    st.write(
+                        f"**Submitted:** "
+                        f"{request.get('submitted_at', 'Unknown')}"
+                    )
 
-                        supabase.table(
-                            "follow_up_requests"
-                        ).update(
-                            {
-                                "status": "reviewed",
-                                "reviewed_at": datetime.now(
-                                    timezone.utc
-                                ).isoformat()
-                            }
-                        ).eq(
-                            "id",
-                            request["id"]
-                        ).execute()
+                    st.write(
+                        f"**File:** "
+                        f"{submission.get('file_name') or 'No file'}"
+                    )
 
-                        st.success(
-                            "Submission marked as reviewed."
+                    file_path = submission.get("file_path")
+
+                    if file_path:
+                        try:
+                            signed_result = (
+                                supabase.storage
+                                .from_("patient-reports")
+                                .create_signed_url(file_path, 300)
+                            )
+
+                            signed_url = (
+                                signed_result.get("signedURL")
+                                or signed_result.get("signedUrl")
+                            )
+
+                            if signed_url:
+                                st.link_button(
+                                    "Open report",
+                                    signed_url
+                                )
+
+                                if file_path.lower().endswith(
+                                    (".png", ".jpg", ".jpeg", ".webp")
+                                ):
+                                    st.image(signed_url)
+                            else:
+                                st.warning(
+                                    "Could not generate a report viewing link."
+                                )
+
+                        except Exception as e:
+                            st.error("Report viewing failed.")
+                            st.exception(e)
+                    else:
+                        st.info(
+                            "No stored file path is available for this submission."
                         )
-                        st.rerun()
 
-                    except Exception as e:
-                        st.error(
-                            "Could not save the doctor response."
+                    st.write(
+                        f"**Patient message:** "
+                        f"{submission.get('message') or 'No message provided.'}"
+                    )
+
+                    st.subheader("Doctor response")
+
+                    response = st.radio(
+                        "Select action",
+                        [
+                            "Continue previously prescribed treatment",
+                            "Book follow-up appointment",
+                            "Call clinic promptly",
+                            "Custom response"
+                        ],
+                        key=f"response_{request['id']}"
+                    )
+
+                    if response == "Continue previously prescribed treatment":
+                        default_message = (
+                            "Your report has been reviewed. "
+                            "Please continue your previously "
+                            "prescribed treatment as advised."
                         )
-                        st.exception(e)
+                    elif response == "Book follow-up appointment":
+                        default_message = (
+                            "Your report has been reviewed. "
+                            "Please book a follow-up appointment "
+                            "to discuss the results."
+                        )
+                    elif response == "Call clinic promptly":
+                        default_message = (
+                            "Your report has been reviewed. "
+                            "Please contact the clinic promptly."
+                        )
+                    else:
+                        default_message = ""
 
-                            
+                    doctor_message = st.text_area(
+                        "Message to patient",
+                        value=default_message,
+                        key=f"message_{request['id']}",
+                        height=120
+                    )
+
+                    if st.button(
+                        "Mark as Reviewed",
+                        key=f"review_{request['id']}",
+                        type="primary"
+                    ):
+                        try:
+                            supabase.table("responses").insert(
+                                {
+                                    "submission_id": submission["id"],
+                                    "doctor_id": current_user.id,
+                                    "response_type": response,
+                                    "message": doctor_message.strip()
+                                }
+                            ).execute()
+
+                            supabase.table(
+                                "follow_up_requests"
+                            ).update(
+                                {
+                                    "status": "reviewed",
+                                    "reviewed_at": datetime.now(
+                                        timezone.utc
+                                    ).isoformat()
+                                }
+                            ).eq(
+                                "id",
+                                request["id"]
+                            ).execute()
+
+                            st.success(
+                                "Submission marked as reviewed."
+                            )
+                            st.rerun()
+
+                        except Exception as e:
+                            st.error(
+                                "Could not save the doctor response."
+                            )
+                            st.exception(e)
+
+    except Exception as e:
+        st.error("Could not load follow-up submissions.")
+        st.exception(e)
+
 # ==================================================
 # ABOUT
 # ==================================================
