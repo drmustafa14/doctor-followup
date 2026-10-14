@@ -844,7 +844,7 @@ else:
 
                             st.rerun()
 
-                         except Exception as e:
+                        except Exception as e:
 
                              st.error(
                                  "Could not save the doctor response."
