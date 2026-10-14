@@ -851,10 +851,7 @@ else:
                             )
 
                             st.exception(e)
-
-                        except Exception as e:
-                            st.error("Report viewing failed.")
-                            st.exception(e)
+                            
 # ==================================================
 # ABOUT
 # ==================================================
