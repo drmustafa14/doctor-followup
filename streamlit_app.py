@@ -702,7 +702,6 @@ else:
                 f"🔴 {patient_name} - "
                 f"{request.get('request_type', 'Follow-up')}"
             ):
-
                 st.write(
                     f"**Submitted:** "
                     f"{request.get('submitted_at', 'Unknown')}"
@@ -712,7 +711,7 @@ else:
                     f"**File:** "
                     f"{submission.get('file_name') or 'No file'}"
                 )
-                
+
                 file_path = submission.get("file_path")
 
                 if file_path:
@@ -738,22 +737,18 @@ else:
                                 (".png", ".jpg", ".jpeg", ".webp")
                             ):
                                 st.image(signed_url)
-
                         else:
                             st.warning(
                                 "Could not generate a report viewing link."
                             )
 
-                    except Exception:
-                        st.warning(
-                            "Report viewing failed. "
-                            "Please check file access permissions."
-                        )
+                    except Exception as e:
+                        st.error("Report viewing failed.")
+                        st.exception(e)
                 else:
                     st.info(
                         "No stored file path is available for this submission."
                     )
-
 
                 st.write(
                     f"**Patient message:** "
@@ -774,83 +769,72 @@ else:
                 )
 
                 if response == "Continue previously prescribed treatment":
-
                     default_message = (
                         "Your report has been reviewed. "
                         "Please continue your previously "
                         "prescribed treatment as advised."
                     )
-
                 elif response == "Book follow-up appointment":
-
                     default_message = (
                         "Your report has been reviewed. "
                         "Please book a follow-up appointment "
                         "to discuss the results."
                     )
-
                 elif response == "Call clinic promptly":
-
                     default_message = (
                         "Your report has been reviewed. "
                         "Please contact the clinic promptly."
-                        )
-
+                    )
                 else:
-
                     default_message = ""
 
-                    doctor_message = st.text_area(
-                        "Message to patient",
-                        value=default_message,
-                        key=f"message_{request['id']}",
-                        height=120
-                    )
+                doctor_message = st.text_area(
+                    "Message to patient",
+                    value=default_message,
+                    key=f"message_{request['id']}",
+                    height=120
+                )
 
-                    if st.button(
-                        "Mark as Reviewed",
-                        key=f"review_{request['id']}",
-                        type="primary"
-                    ):
+                if st.button(
+                    "Mark as Reviewed",
+                    key=f"review_{request['id']}",
+                    type="primary"
+                ):
+                    try:
+                        supabase.table("responses").insert(
+                            {
+                                "submission_id": submission["id"],
+                                "doctor_id": current_user.id,
+                                "response_type": response,
+                                "message": doctor_message.strip()
+                            }
+                        ).execute()
 
-                        try:
+                        supabase.table(
+                            "follow_up_requests"
+                        ).update(
+                            {
+                                "status": "reviewed",
+                                "reviewed_at": datetime.now(
+                                    timezone.utc
+                                ).isoformat()
+                            }
+                        ).eq(
+                            "id",
+                            request["id"]
+                        ).execute()
 
-                            supabase.table("responses").insert(
-                                {
-                                    "submission_id": submission["id"],
-                                    "doctor_id": current_user.id,
-                                    "response_type": response,
-                                    "message": doctor_message.strip()
-                                }
-                            ).execute()
+                        st.success(
+                            "Submission marked as reviewed."
+                        )
+                        st.rerun()
 
-                            supabase.table(
-                                "follow_up_requests"
-                            ).update(
-                                {
-                                    "status": "reviewed",
-                                    "reviewed_at": datetime.now(
-                                        timezone.utc
-                                    ).isoformat()
-                                }
-                            ).eq(
-                                "id",
-                                request["id"]
-                            ).execute()
+                    except Exception as e:
+                        st.error(
+                            "Could not save the doctor response."
+                        )
+                        st.exception(e)
 
-                            st.success(
-                                "Submission marked as reviewed."
-                            )
-
-                            st.rerun()
-
-                        except Exception as e:
-
-                             st.error(
-                                 "Could not save the doctor response."
-                             )
-
-                             st.exception(e)
                             
 # ==================================================
 # ABOUT
@@ -859,19 +843,9 @@ else:
 st.divider()
 
 with st.expander("About MedFollow"):
-
     st.write(
         """
         MedFollow is a prototype for doctor-patient follow-up
         communication.
-
-        The goal is to allow doctors to give patients a dedicated
-        follow-up link instead of sharing their personal phone number.
-
-        Patients can use the link to submit reports or readings
-        requested during a previous consultation.
-
-        The doctor then reviews the submission and decides the
-        appropriate next step.
         """
     )
