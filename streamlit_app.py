@@ -858,7 +858,7 @@ else:
 
                             st.divider()
 
-                       with st.expander("About MedFollow"):
+                            with st.expander("About MedFollow"):
 
                             st.write(
         """
