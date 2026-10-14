@@ -860,18 +860,18 @@ else:
 
                             with st.expander("About MedFollow"):
 
-                            st.write(
-        """
-        MedFollow is a prototype for doctor-patient follow-up
-        communication.
+                                st.write(
+                                    """
+                                    MedFollow is a prototype for doctor-patient follow-up
+                                    communication.
 
-        The goal is to allow doctors to give patients a dedicated
-        follow-up link instead of sharing their personal phone number.
+                                    The goal is to allow doctors to give patients a dedicated
+                                    follow-up link instead of sharing their personal phone number.
 
-        Patients can use the link to submit reports or readings
-        requested during a previous consultation.
+                                    Patients can use the link to submit reports or readings
+                                    requested during a previous consultation.
 
-        The doctor then reviews the submission and decides the
-        appropriate next step.
-        """
-    )
+                                    The doctor then reviews the submission and decides the
+                                    appropriate next step.
+                                    """
+                             )
