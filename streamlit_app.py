@@ -823,10 +823,35 @@ else:
                                 request["id"]
                             ).execute()
 
+                            
+                            status_response = (
+                                supabase
+                                .table("follow_up_requests")
+                                .select("status_token")
+                                .eq("id", request["id"])
+                                .single()
+                                .execute()
+                            )
+
+                            status_token = (
+                                status_response.data["status_token"]
+                            )
+
+                            base_url = st.context.url.split("?")[0]
+                            status_link = (
+                                f"{base_url}?status_token={status_token}"
+                            )
+
                             st.success(
                                 "Submission marked as reviewed."
                             )
-                            st.rerun()
+
+                            st.text_input(
+                                "Patient status link — share this with the patient",
+                                value=status_link,
+                                key=f"status_link_{request['id']}"
+                            )
+
 
                         except Exception as e:
                             st.error(
